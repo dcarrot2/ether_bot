@@ -19,8 +19,8 @@ const LATESTVERSIONDATE = "2016-08-10"
 
 // SpotPrice holds Coinbase's data
 type SpotPrice struct {
-	Currency string
-	Amount   string
+	Currency string `json:"currency"`
+	Amount   string `json:"amount"`
 }
 
 // SpotPriceResponse holds Coinbase response
@@ -42,10 +42,10 @@ func GetSpotPrice(c string) *SpotPriceResponse {
 	client := &http.Client{
 		Timeout: time.Second * 10,
 	}
-	fmt.Println("Making request")
+	log.Println("Making request")
 	res, err := client.Get(fmt.Sprintf("%v/prices/%v/spot", URI, c))
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil
 	}
 	body, err := ioutil.ReadAll(res.Body)
@@ -89,6 +89,20 @@ func fetchCoinbasePrice(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Writing")
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(j)
+	} else {
+		res := GetSpotPrice(currencyPair)
+		if res != nil {
+			response := Response{
+				"data":  res.Data,
+				"error": nil,
+			}
+			j, err := json.Marshal(response)
+			if err != nil {
+				log.Fatalf("Cannot parse GetSpotPrice: %v", err)
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(j)
+		}
 	}
 }
 
