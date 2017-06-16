@@ -3,29 +3,41 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
+	"time"
 )
 
+// URI is the Coinbase base URI
 const URI = "https://api.coinbase.com/v2"
-const LATEST_VERSION_DATE = "2016-08-10"
 
+// LATESTVERSIONDATE is the date versioning scheme of coinbase
+const LATESTVERSIONDATE = "2016-08-10"
+
+// SpotPrice holds Coinbase's data
 type SpotPrice struct {
 	Currency string
-	Amount string
+	Amount   string
 }
 
+// SpotPriceResponse holds Coinbase response
 type SpotPriceResponse struct {
 	Data SpotPrice
 }
 
+// BadRequestError holds error object
 type BadRequestError struct {
 	Message string `json:"message"`
-	Status string  `json:"status"`
+	Status  string `json:"status"`
 }
 
+// Response holds ether_bot's response
+type Response map[string]interface{}
+
+// GetSpotPrice fetches current price on Coinbase
 func GetSpotPrice(c string) *SpotPriceResponse {
 	client := &http.Client{
 		Timeout: time.Second * 10,
@@ -56,15 +68,20 @@ func health(w http.ResponseWriter, r *http.Request) {
 }
 
 func fetchCoinbasePrice(w http.ResponseWriter, r *http.Request) {
-	
+
 	currencyPair := r.URL.Query().Get("currency_pair")
 	if currencyPair == "" {
-		badRequest := BadRequestError{
+		error := BadRequestError{
 			"Add currency_pair querystring",
 			"Bad Request",
 		}
-		fmt.Println(badRequest)
-		j, err := json.Marshal(badRequest)
+
+		response := Response{
+			"data":  nil,
+			"error": error,
+		}
+
+		j, err := json.Marshal(response)
 		if err != nil {
 			fmt.Println("Error")
 			fmt.Println(err)
@@ -78,6 +95,7 @@ func fetchCoinbasePrice(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/", health)
 	http.HandleFunc("/prices", fetchCoinbasePrice)
-	fmt.Println("Listenting on port 8000")
-	http.ListenAndServe(":8000", nil)
+	fmt.Println("Listenting on port")
+	fmt.Println(os.Getenv("PORT"))
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
 }
