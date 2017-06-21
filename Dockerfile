@@ -8,8 +8,8 @@ COPY . /go/src/ether_bot
 RUN go-wrapper download
 RUN go-wrapper install
 
-ENV PORT 80
+ENV PORT 8080
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["go-wrapper", "run"]
