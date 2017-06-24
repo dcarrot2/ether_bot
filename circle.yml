@@ -11,3 +11,10 @@ test:
   override:
     - docker run -d -p 8080:8080 ether_bot; sleep 10
     - curl --retry 10 --retry-delay 5 -v http://localhost:8080/
+
+deployment:
+  master:
+    branch: master
+    commands:
+      - echo 'deploying latest build...'
+      - ssh -v $DROPLET_USER@$DROPLET_IP "cd ether_bot; ./deployment.sh"

@@ -1,0 +1,1 @@
+docker build --rm -t ether_bot .
