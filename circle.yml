@@ -5,7 +5,7 @@ machine:
 dependencies:
   override:
     - docker info
-    - docker-compose up --build
+    - docker-compose up -d
 
 test:
   override:
