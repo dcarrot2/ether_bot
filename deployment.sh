@@ -6,4 +6,4 @@ git clone https://github.com/dcarrot2/ether_bot.git
 cd ether_bot
 echo 'Building new image...'
 docker-compose stop
-docker-compose up -d
+docker-compose up -d --build
