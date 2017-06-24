@@ -6,11 +6,9 @@ services:
      - "6379:6379"
    expose:
      - "6379"
- ether_bot:
+ web:
    build: .
-   security_opt:
-     - seccomp:unconfined
    ports:
      - "8080:8080"
-   expose:
-     - "8080"
+   volumes:
+     - .:/go/src/ether_bot
