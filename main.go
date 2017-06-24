@@ -9,10 +9,18 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/garyburd/redigo/redis"
 )
 
 // URI is the Coinbase base URI
 const URI = "https://api.coinbase.com/v2"
+
+// REDISADDRESS is the port for redis server
+const REDISADDRESS = ":6379"
+
+// MAXCONNECTIONS is the max connections to redis
+const MAXCONNECTIONS = 10
 
 // LATESTVERSIONDATE is the date versioning scheme of coinbase
 const LATESTVERSIONDATE = "2016-08-10"
@@ -107,6 +115,17 @@ func fetchCoinbasePrice(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	redisPool := redis.NewPool(func() (redis.Conn, error) {
+		c, err := redis.Dial("tcp", REDISADDRESS)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return c, err
+	}, MAXCONNECTIONS)
+
+	defer redisPool.Close()
 	http.HandleFunc("/", health)
 	http.HandleFunc("/prices", fetchCoinbasePrice)
 	fmt.Println("Listenting on port")

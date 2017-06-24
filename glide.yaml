@@ -1,0 +1,3 @@
+package: github.com/dcarrot2/ether_bot
+import:
+  - package: github.com/garyburd/redigo/redis
