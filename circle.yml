@@ -17,4 +17,4 @@ deployment:
     branch: master
     commands:
       - echo 'deploying latest build...'
-      - ssh -v $DROPLET_USER@$DROPLET_IP "cd ether_bot; ./deployment.sh"
+      - ssh -v $DROPLET_USER@$DROPLET_IP "cd ether_bot; ls"
