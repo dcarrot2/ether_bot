@@ -77,6 +77,7 @@ func health(w http.ResponseWriter, r *http.Request) {
 }
 
 func parseSlackWebhook(w http.ResponseWriter, r *http.Request) {
+	log.Println("Slack web hook")
 	err := r.ParseForm()
 	if err != nil {
 		log.Println("Error parsing form")
@@ -130,8 +131,10 @@ func fetchCoinbasePrice(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
+		log.Println("Raw Price Handler")
 		rawPriceHandler(w, r)
 	case "POST":
+		log.Println("parseSlackWebhook")
 		parseSlackWebhook(w, r)
 	default:
 		error := BadRequestError{
@@ -146,8 +149,8 @@ func fetchCoinbasePrice(w http.ResponseWriter, r *http.Request) {
 
 		j, err := json.Marshal(response)
 		if err != nil {
-			fmt.Println("Error")
-			fmt.Println(err)
+			log.Println("Error")
+			log.Println(err)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
