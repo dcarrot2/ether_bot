@@ -13,6 +13,11 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
+// AvailableCryptoCurrencies is a lookup for valid currency queries
+var AVAILABLECRYPTOCURRENCIES = map[string]bool{
+	"ETH": true,
+}
+
 // URI is the Coinbase base URI
 const URI = "https://api.coinbase.com/v2"
 
@@ -60,11 +65,7 @@ func GetSpotPrice(c string) *SpotPriceResponse {
 	response := SpotPriceResponse{}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil
 	}
 	defer res.Body.Close()
@@ -75,8 +76,19 @@ func health(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "OK")
 }
 
-func fetchCoinbasePrice(w http.ResponseWriter, r *http.Request) {
+func parseSlackWebhook(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		log.Println("Error parsing form")
+	}
+	coin := r.PostFormValue("text")
+	if _, ok := AVAILABLECRYPTOCURRENCIES[coin]; ok {
+		log.Println("Valid query, executing")
+		w.Write([]byte("OK"))
+	}
+}
 
+func rawPriceHandler(w http.ResponseWriter, r *http.Request) {
 	currencyPair := r.URL.Query().Get("currency_pair")
 	if currencyPair == "" {
 		error := BadRequestError{
@@ -91,10 +103,10 @@ func fetchCoinbasePrice(w http.ResponseWriter, r *http.Request) {
 
 		j, err := json.Marshal(response)
 		if err != nil {
-			fmt.Println("Error")
-			fmt.Println(err)
+			log.Println("Error")
+			log.Println(err)
 		}
-		fmt.Println("Writing")
+		log.Println("Writing")
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(j)
 	} else {
@@ -114,6 +126,36 @@ func fetchCoinbasePrice(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func fetchCoinbasePrice(w http.ResponseWriter, r *http.Request) {
+
+	switch r.Method {
+	case "GET":
+		rawPriceHandler(w, r)
+	case "POST":
+		parseSlackWebhook(w, r)
+	default:
+		error := BadRequestError{
+			"Bad request",
+			"Bad Request",
+		}
+
+		response := Response{
+			"data":  nil,
+			"error": error,
+		}
+
+		j, err := json.Marshal(response)
+		if err != nil {
+			fmt.Println("Error")
+			fmt.Println(err)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(j)
+	}
+
+}
+
 func main() {
 	redisPool := redis.NewPool(func() (redis.Conn, error) {
 		c, err := redis.Dial("tcp", REDISADDRESS)
@@ -128,7 +170,8 @@ func main() {
 	defer redisPool.Close()
 	http.HandleFunc("/", health)
 	http.HandleFunc("/prices", fetchCoinbasePrice)
-	fmt.Println("Listenting on port")
-	fmt.Println(os.Getenv("PORT"))
+	http.HandleFunc("/slack-prices", parseSlackWebhook)
+	log.Println("Listening on port")
+	log.Println(os.Getenv("PORT"))
 	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
 }
