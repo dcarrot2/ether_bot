@@ -15,7 +15,7 @@ import (
 
 // AvailableCryptoCurrencies is a lookup for valid currency queries
 var AVAILABLECRYPTOCURRENCIES = map[string]bool{
-	"ETH": true,
+	"ETH-USD": true,
 }
 
 // URI is the Coinbase base URI
@@ -39,6 +39,11 @@ type SpotPrice struct {
 // SpotPriceResponse holds Coinbase response
 type SpotPriceResponse struct {
 	Data SpotPrice
+}
+
+type SlackHookResponse struct {
+	ResponseType string `json:"response_type"`
+	Text         string `json:"text"`
 }
 
 // BadRequestError holds error object
@@ -84,8 +89,20 @@ func parseSlackWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 	coin := r.PostFormValue("text")
 	if _, ok := AVAILABLECRYPTOCURRENCIES[coin]; ok {
+		price := GetSpotPrice(coin)
+		res := SlackHookResponse{
+			"in_channel",
+			price.Data.Amount,
+		}
 		log.Println("Valid query, executing")
-		w.Write([]byte("OK"))
+		j, err := json.Marshal(res)
+		if err != nil {
+			log.Println("Error serializing price response")
+			log.Println(err)
+		} else {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(j)
+		}
 	}
 }
 
