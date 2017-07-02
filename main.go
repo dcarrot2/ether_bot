@@ -106,7 +106,7 @@ func parseSlackWebhook(w http.ResponseWriter, r *http.Request) {
 	} else {
 		res := SlackHookResponse{
 			"in_channel",
-			"Hmm, that's not a valid cryptocurrency. Try [abbreviation]-[conversation], like 'BTC-USD'",
+			"Hmm, that's not a valid cryptocurrency. Try [abbreviation]-[conversion], like 'BTC-USD'",
 		}
 		j, err := json.Marshal(res)
 		if err != nil {
