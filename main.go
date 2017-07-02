@@ -16,6 +16,7 @@ import (
 // AvailableCryptoCurrencies is a lookup for valid currency queries
 var AVAILABLECRYPTOCURRENCIES = map[string]bool{
 	"ETH-USD": true,
+	"BTC-USD": true,
 }
 
 // URI is the Coinbase base URI
