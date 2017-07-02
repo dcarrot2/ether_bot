@@ -95,7 +95,19 @@ func parseSlackWebhook(w http.ResponseWriter, r *http.Request) {
 			"in_channel",
 			price.Data.Amount,
 		}
-		log.Println("Valid query, executing")
+		j, err := json.Marshal(res)
+		if err != nil {
+			log.Println("Error serializing price response")
+			log.Println(err)
+		} else {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(j)
+		}
+	} else {
+		res := SlackHookResponse{
+			"in_channel",
+			"Hmm, that's not a valid cryptocurrency. Try [abbreviation]-[conversation], like 'BTC-USD'",
+		}
 		j, err := json.Marshal(res)
 		if err != nil {
 			log.Println("Error serializing price response")

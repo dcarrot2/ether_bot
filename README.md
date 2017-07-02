@@ -1,3 +1,3 @@
 ***ETHER_BOT***
 
-A slack bot to report prices of Ethereum from Coinbase's API. 
+A slack bot to report prices of Ethereum from Coinbase's API. Super alpha, documentation to follow...
